@@ -1,0 +1,81 @@
+void setup() {
+  Serial.begin(9600);
+  pinMode(3, INPUT_PULLUP);
+  pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT); 
+}
+
+bool flag = false;
+bool SingleClick = false;
+bool DoubleClick = false;
+long CurentClick = 0;
+long PrevClick = 0;
+long clickDelay = 250; 
+bool clickInProgress = false; 
+String str;
+void loop() {
+  if (Serial.available() > 0){
+    str = Serial.readString();
+    str.trim();
+    if(str == "1"){
+      SingleClick = !SingleClick;
+      if(SingleClick == true) Serial.println("Світлодіод 1 засвітився");
+      else Serial.println("Світлодіод 1 погас");
+    }
+    else if(str == "2"){
+      DoubleClick = !DoubleClick;
+      if(DoubleClick == true) Serial.println("Світлодіод 2 засвітився");
+      else Serial.println("Світлодіод 2 погас");
+      }
+  }
+  bool btnState = !digitalRead(3);
+  
+  if (btnState && !flag && (millis() - PrevClick) > clickDelay) {
+    CurentClick = millis();
+    flag = true;
+    clickInProgress = true; 
+  }
+
+  if (!btnState && flag) {
+    flag = false;
+    
+    if(((CurentClick - PrevClick) < 400)) {
+      DoubleClick = !DoubleClick;
+      if(DoubleClick == true) Serial.println("Світлодіод 2 засвітився");
+      else Serial.println("Світлодіод 2 погас");
+    
+      clickInProgress = false;
+    }
+    PrevClick = CurentClick;
+    
+  }
+
+  
+  if (clickInProgress && (millis() - CurentClick) > clickDelay && !btnState) {
+    SingleClick = !SingleClick;
+    clickInProgress = false; 
+    if(SingleClick == true) Serial.println("Світлодіод 1 засвітився");
+      else Serial.println("Світлодіод 1 погас");
+  }
+
+ 
+  if(SingleClick){
+    digitalWrite(7, HIGH);
+
+
+  }
+  else {
+    digitalWrite(7, LOW);
+ 
+  }
+  
+  if(DoubleClick){
+  
+    digitalWrite(8, HIGH);
+     }
+  else {
+    digitalWrite(8, LOW);
+ 
+  }
+  str = "";
+}
